@@ -1,0 +1,91 @@
+schema: '2.0'
+stages:
+  load_data:
+    cmd: python3 src/stage_01_load_and_save_data.py --config=params.yaml
+    deps:
+    - path: src/stage_01_load_and_save_data.py
+      md5: 2bdfbeece1359f0e21c8c16b58df9606
+      size: 1269
+    - path: src/utils/common_utils.py
+      md5: 4f41b26e3bacf9708ef57b6e539157f3
+      size: 1643
+    params:
+      params.yaml:
+        artifacts.raw_local_data: artifacts/raw_local_data_dir/data.csv
+        data_source.s3_source: https://dvc-demo-datasets.s3.ap-south-1.amazonaws.com/winequality_data/winequality-red.csv
+    outs:
+    - path: artifacts/raw_local_data_dir/data.csv
+      md5: 7c92f1ee593c0fbd2ad8c67ba5c446df
+      size: 91999
+  split_data:
+    cmd: python3 src/stage_02_split_data.py --config=params.yaml
+    deps:
+    - path: src/stage_02_split_data.py
+      md5: f8eed2e7aa6207d3129cf5b52354a691
+      size: 1597
+    - path: src/utils/common_utils.py
+      md5: 4f41b26e3bacf9708ef57b6e539157f3
+      size: 1643
+    params:
+      params.yaml:
+        artifacts.raw_local_data: artifacts/raw_local_data_dir/data.csv
+        artifacts.split_data.processed_data_dir: artifacts/processed_data
+        artifacts.split_data.test_path: artifacts/processed_data/test.csv
+        artifacts.split_data.train_path: artifacts/processed_data/train.csv
+        base.random_state: 42
+        base.target_col: quality
+        base.test_size: 0.2
+    outs:
+    - path: artifacts/processed_data/test.csv
+      md5: b31a4073fa82bc444fd5683cb5cf7e76
+      size: 18511
+    - path: artifacts/processed_data/train.csv
+      md5: 0196b80fbeb701453fe0052e35635db2
+      size: 73634
+  train:
+    cmd: python3 src/stage_03_train_model.py --config=params.yaml
+    deps:
+    - path: artifacts/processed_data/train.csv
+      md5: 0196b80fbeb701453fe0052e35635db2
+      size: 73634
+    - path: src/stage_03_train_model.py
+      md5: f0d1056feb6ae5c639d4bae291ad2ac5
+      size: 1811
+    - path: src/utils/common_utils.py
+      md5: 4f41b26e3bacf9708ef57b6e539157f3
+      size: 1643
+    params:
+      params.yaml:
+        artifacts.split_data.train_path: artifacts/processed_data/train.csv
+        base.random_state: 42
+        base.target_col: quality
+        estimators.ElasticNet.params.alpha: 0.7
+        estimators.ElasticNet.params.l1_ratio: 0.4
+    outs:
+    - path: artifacts/saved_models/model.pkl
+      md5: 1e854a8bcc6b8c8f86067b741be632d3
+      size: 884
+  evaluate:
+    cmd: python3 src/stage_04_evaluate.py --config=params.yaml
+    deps:
+    - path: artifacts/processed_data/test.csv
+      md5: b31a4073fa82bc444fd5683cb5cf7e76
+      size: 18511
+    - path: artifacts/saved_models/model.pkl
+      md5: 1e854a8bcc6b8c8f86067b741be632d3
+      size: 884
+    - path: src/stage_04_evaluate.py
+      md5: 6acd96361bd130729a81574873471d74
+      size: 1451
+    - path: src/utils/common_utils.py
+      md5: 4f41b26e3bacf9708ef57b6e539157f3
+      size: 1643
+    params:
+      params.yaml:
+        artifacts.report.scores: artifacts/report/scores.json
+        artifacts.split_data.test_path: artifacts/processed_data/test.csv
+        base.target_col: quality
+    outs:
+    - path: artifacts/report/scores.json
+      md5: ac071bf4df5bdd406d45a0cb52b72430
+      size: 96

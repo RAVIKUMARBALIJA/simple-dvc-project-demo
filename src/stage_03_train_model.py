@@ -1,8 +1,18 @@
 import pandas as pd
 import argparse
+
+import sys,os
+import traceback
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.utils.common_utils import read_params,create_dir,save_reports,save_model
 import logging
 from sklearn.linear_model import ElasticNet
+
+
+logging_str = "[%(asctime)s: %(levelname)s: %(module)s)]: %(message)s"
+logging.basicConfig(level=logging.DEBUG,format=logging_str)
 
 def train(config_path):
     config = read_params(config_path)
@@ -18,10 +28,10 @@ def train(config_path):
     report = artifacts["report"]
     report_dir = report["report_dir"]
     params_file = report["params"]
-    scores_file = report["scores"]
 
     base = config["base"]
     target = base["target_col"]
+    random_state = base["random_state"]
 
     create_dir(dirs = [model_dir,report_dir])
 
@@ -33,7 +43,7 @@ def train(config_path):
     alpha = elasticnet_params["alpha"]
     l1_ratio = elasticnet_params["l1_ratio"]
 
-    elasticNet = ElasticNet(alpha=alpha,l1_ratio=l1_ratio)
+    elasticNet = ElasticNet(alpha=alpha,l1_ratio=l1_ratio,random_state=random_state)
     elasticNet.fit(train_x,train_y)
 
     params = {"alpha":alpha,"l1_ratio":l1_ratio}
@@ -51,6 +61,7 @@ if __name__ == "__main__":
         logging.info(f"model training has been completed")
     except Exception as e:
         logging.error(e)
+        traceback.print_exc()
 
 
 

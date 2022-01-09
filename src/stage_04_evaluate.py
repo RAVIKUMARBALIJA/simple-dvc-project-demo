@@ -1,7 +1,16 @@
 import pandas as pd
 import argparse
+import sys,os
+import traceback
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.utils.common_utils import read_params,create_dir,save_reports,load_model,generate_metrics
 import logging
+
+
+logging_str = "[%(asctime)s,%(levelname)s,%(module)s)]: %(message)s"
+logging.basicConfig(level=logging.DEBUG,format=logging_str)
 
 def evaluate_model(config_path):
 
@@ -46,3 +55,4 @@ if __name__ == "__main__":
         logging.info(f"model evaluation is complete")
     except Exception as e:
         logging.error(e)
+        traceback.print_exc()

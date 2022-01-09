@@ -8,7 +8,8 @@ import pickle
 from sklearn.metrics import mean_absolute_error,mean_squared_error,r2_score
 
 def read_params(config_path: str) -> dict:
-    with open(config_path,"r") as yaml_file:
+    #print(config_path)
+    with open(config_path) as yaml_file:
         config = yaml.safe_load(yaml_file)
     logging.info(f"reading the param")
     return config
@@ -29,7 +30,7 @@ def save_local_df(df,df_path,header=False):
 
 def save_reports(report_path:str,report:dict):
     with open(report_path,"w") as f:
-        json.dump(report_path,f,indent=4)
+        json.dump(report,f,indent=4)
     logging.info(f"details of the report {report}")
     logging.info(f"saved report at {report_path}")
 
@@ -39,11 +40,11 @@ def clean_prev_dir_if_exists(dirpath:str):
         logging.info(f"clearing existing artifacts at {dirpath}")
 
 def save_model(model_obj,model_path):
-    with open(model_path,"w") as f:
+    with open(model_path,"wb") as f:
         pickle.dump(model_obj,f)
 
 def load_model(model_path):
-    return pickle.load(open(model_path,"r"))
+    return pickle.load(open(model_path,"rb"))
 
 def generate_metrics(actual,predicted):
     rmse = np.sqrt(mean_squared_error(actual,predicted))
